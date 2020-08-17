@@ -3,7 +3,10 @@ name = "message"
 version = "0.1.0"
 authors = ["dignifiedquire <me@dignifiedquire.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Build email messages in rust"
+readme = "README.md"
+homepage = "https://github.com/async-email/message"
+repository = "https://github.com/async-email/message"
+license = "MIT/Apache-2.0"
 
 [dependencies]
