@@ -3,12 +3,12 @@ use std::path::Path;
 use std::str::FromStr;
 use std::{fs, io};
 
-pub use email::{Address, Header, Mailbox, MimeMessage, MimeMultipartType};
 use mime::Mime;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::email::{Email, EmailAddress, EmailAddressError, Envelope, EnvelopeError, MessageId};
+use crate::email::{Email, Envelope, EnvelopeError, MessageId};
+use crate::{Address, Header, Mailbox, MimeMessage, MimeMultipartType};
 
 const RFC822Z_TIME_FORMAT: &str = "%a, %d %b %Y %T %z";
 
@@ -36,8 +36,8 @@ pub enum Error {
     #[error("Envelope")]
     Envelope(#[from] EnvelopeError),
     /// Envelope error
-    #[error("EmailAddress")]
-    EmailAddress(#[from] EmailAddressError),
+    #[error("Address")]
+    Address(#[from] mailparse::MailParseError),
     /// Unparseable filename for attachment
     #[error("Cannot parse filename")]
     CannotParseFilename,
@@ -391,15 +391,15 @@ impl EmailBuilder {
                 // add all receivers in to_header and cc_header
                 for receiver in self.to.iter().chain(self.cc.iter()).chain(self.bcc.iter()) {
                     match *receiver {
-                        Address::Mailbox(ref m) => to.push(EmailAddress::from_str(&m.address)?),
+                        Address::Mailbox(ref m) => to.push(Address::from_str(&m.address)?),
                         Address::Group(_, ref ms) => {
                             for m in ms.iter() {
-                                to.push(EmailAddress::from_str(&m.address.clone())?);
+                                to.push(Address::from_str(&m.address.clone())?);
                             }
                         }
                     }
                 }
-                let from = Some(EmailAddress::from_str(&match self.sender {
+                let from = Some(Address::from_str(&match self.sender {
                     Some(x) => Ok(x.address), // if we have a sender_header, use it
                     None => {
                         // use a from header
@@ -711,9 +711,9 @@ mod test {
         assert_eq!(
             email.envelope.to(),
             vec![
-                EmailAddress::new("user@localhost".to_string()).unwrap(),
-                EmailAddress::new("cc@localhost".to_string()).unwrap(),
-                EmailAddress::new("bcc@localhost".to_string()).unwrap(),
+                Address::new("user@localhost".to_string()).unwrap(),
+                Address::new("cc@localhost".to_string()).unwrap(),
+                Address::new("bcc@localhost".to_string()).unwrap(),
             ]
             .as_slice()
         );
